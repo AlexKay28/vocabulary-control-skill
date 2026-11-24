@@ -1,0 +1,65 @@
+# Banned patterns: colloquialisms, metaphors, and AI-slop phrasing.
+# One regex per line; empty lines and lines starting with # are ignored.
+# Matched case-insensitively against every section; at most
+# thresholds.json:metaphor_max_per_section unique sentences may hit,
+# and they are listed in the report so you can see exactly what to cut.
+#
+# Two kinds of entries live here:
+#  1. Topic metaphors ("taxi", "subway", "knob") — picturesque language that
+#     betrays LLM assist and hurts technical reading.
+#  2. Generic AI-slop ("delve", "tapestry", "testament") — the neuroslop
+#     fingerprints that no published paper contains.
+
+# ── metaphor / colloquialism patterns (from the original DLLM harness) ──
+\btaxi\b
+\bsubway\b
+\bfare\b
+\bstation\b(?!s)
+\bblink\b
+\btrail gone cold\b
+\bemergency brake\b
+before you (can )?finish
+before you can blink
+\bcatching\b
+\bmetered\b
+\bflat fare\b
+\bper station\b
+no matter how many
+\bboard\b(?![a-z])
+\bthe gap (is |was )?(the )?difference\b
+\bknob\b
+\bbrake\b
+
+# ── generic neuroslop / AI-ism patterns ──
+\bdelve(s|d|ing)?\b
+\btapestry\b
+\btestament to\b
+\bpaves the way\b
+\bunlock(s|ed|ing)? the\b
+\btreasure trove\b
+\bsymphony\b
+\bdance of\b
+\bnavigat(e|es|ing) the (complex|intricate|landscape)\b
+\bin the ever-evolving\b
+\bit('s| is) important to note that\b
+\bit('s| is) worth noting that\b
+\bserves as a\b
+\bstands as a\b
+\ba (rich|vibrant) (ecosystem|landscape)\b
+\bdazzling\b
+\bmyriad of\b
+\bkaleidoscope\b
+\bpicture this\b
+\bimagine a world\b
+\bfast-paced\b
+\brobust and scalable\b
+\bseamless(ly)?\b
+\bcutting-edge\b
+\bgame-changer\b
+\brevolutioniz\b
+\bredefin(e|es|ing) the\b
+\bparadigm shift\b
+\btip of the iceberg\b
+\bshed(s|ding)? light on\b
+\blight bulb\b
+\beureka\b

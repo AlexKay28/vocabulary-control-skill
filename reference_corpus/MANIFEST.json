@@ -1,0 +1,146 @@
+{
+  "description": "Reference corpus of published ML papers for style comparison",
+  "papers": [
+    {
+      "id": "llada",
+      "file": "llada.txt",
+      "title": "Large Language Diffusion Models",
+      "arxiv": "2502.09992",
+      "venue": "preprint",
+      "year": 2025,
+      "field": "diffusion_llm",
+      "words": 16096
+    },
+    {
+      "id": "block_diffusion",
+      "file": "block_diffusion.txt",
+      "title": "Block Diffusion: Interpolating Between Autoregressive and Diffusion Language Models",
+      "arxiv": "2503.09573",
+      "venue": "ICLR 2025 Oral",
+      "year": 2025,
+      "field": "diffusion_llm",
+      "words": 14504
+    },
+    {
+      "id": "efficient_dlm",
+      "file": "efficient_dlm.txt",
+      "title": "Efficient-DLM: From Autoregressive to Diffusion Language Models, and Beyond in Speed",
+      "arxiv": "2512.14067",
+      "venue": "preprint",
+      "year": 2025,
+      "field": "diffusion_llm",
+      "words": 9984
+    },
+    {
+      "id": "vllm_pagedattention",
+      "file": "vllm_pagedattention.txt",
+      "title": "Efficient Memory Management for Large Language Model Serving with PagedAttention",
+      "arxiv": "2309.06180",
+      "venue": "SOSP 2023",
+      "year": 2023,
+      "field": "llm_serving",
+      "words": 12242
+    },
+    {
+      "id": "flashattention2",
+      "file": "flashattention2.txt",
+      "title": "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning",
+      "arxiv": "2307.08691",
+      "venue": "preprint",
+      "year": 2023,
+      "field": "attention",
+      "words": 5377
+    },
+    {
+      "id": "deepseek_v3",
+      "file": "deepseek_v3.txt",
+      "title": "DeepSeek-V3 Technical Report",
+      "arxiv": "2412.19437",
+      "venue": "preprint",
+      "year": 2024,
+      "field": "moe",
+      "words": 20155
+    },
+    {
+      "id": "mamba",
+      "file": "mamba.txt",
+      "title": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
+      "arxiv": "2312.00752",
+      "venue": "preprint",
+      "year": 2023,
+      "field": "ssm",
+      "words": 10247
+    },
+    {
+      "id": "lora",
+      "file": "lora.txt",
+      "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+      "arxiv": "2106.09685",
+      "venue": "ICLR 2022",
+      "year": 2021,
+      "field": "efficient_finetuning",
+      "words": 8954
+    },
+    {
+      "id": "spec_decoding",
+      "file": "spec_decoding.txt",
+      "title": "Fast Inference from Transformers via Speculative Decoding",
+      "arxiv": "2211.17192",
+      "venue": "ICML 2023",
+      "year": 2023,
+      "field": "speculative",
+      "words": 5586
+    },
+    {
+      "id": "gqa",
+      "file": "gqa.txt",
+      "title": "Grouped-Query Attention",
+      "arxiv": "2305.13245",
+      "venue": "preprint",
+      "year": 2023,
+      "field": "attention",
+      "words": 2322
+    },
+    {
+      "id": "qwen2",
+      "file": "qwen2.txt",
+      "title": "Qwen2 Technical Report",
+      "arxiv": "2407.10671",
+      "venue": "preprint",
+      "year": 2024,
+      "field": "llm",
+      "words": 8518
+    },
+    {
+      "id": "llama3",
+      "file": "llama3.txt",
+      "title": "The Llama 3 Herd of Models",
+      "arxiv": "2407.21783",
+      "venue": "preprint",
+      "year": 2024,
+      "field": "llm",
+      "words": 15862
+    },
+    {
+      "id": "awq",
+      "file": "awq.txt",
+      "title": "AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration",
+      "arxiv": "2306.00978",
+      "venue": "MLSys 2024",
+      "year": 2023,
+      "field": "quantization",
+      "words": 5807
+    },
+    {
+      "id": "flashattention1",
+      "file": "flashattention1.txt",
+      "title": "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness",
+      "arxiv": "2205.14135",
+      "venue": "NeurIPS 2022",
+      "year": 2022,
+      "field": "attention",
+      "words": 6224
+    }
+  ],
+  "total_words": 141878
+}
