@@ -78,16 +78,24 @@ Rules of thumb learned the hard way in the original pipeline:
 - **Never fix a failing metric globally** (rewrite whole sections). Fix the
   quoted sentences, re-measure; the distribution moves fast.
 - Don't add neuroslop regexes back to the *threshold list* — add them to
-  `config/banned_patterns.txt`, one regex per line, no code.
+  `banned_patterns:` in `config/settings.yaml`, no code.
 
 ## Config (all project-specific knowledge lives here)
 
-| File | Controls |
+The single source of truth is **`config/settings.yaml`** — one YAML file
+covering thresholds, banned patterns, terminology, and prose-quality
+patterns. `--config` points the scripts at any directory containing a
+`settings.yaml`, so a profile is just a YAML file (see `examples/` for five
+profiles). PyYAML is used when installed; a built-in subset parser
+(`common.parse_yaml`) handles the file otherwise, and the test suite asserts
+both paths produce identical results.
+
+| Settings section | Controls |
 |---|---|
-| `config/thresholds.json` | every counter and its limit (corpus-derived defaults) |
-| `config/banned_patterns.txt` | metaphor/neuroslop regexes, editable without code |
-| `config/terminology.json` | concept → acceptable names (max 2 by default) |
-| `config/prose_quality.json` | acronyms, overexplained-definition patterns, repeated caveats, claim exemptions |
+| `thresholds:` | every counter and its limit (corpus-derived defaults) |
+| `banned_patterns:` | metaphor/neuroslop regexes, editable without code |
+| `terminology:` | concept → acceptable names (max 2 by default) |
+| `prose_quality:` | acronyms, overexplained definitions, repeated caveats, claim exemptions |
 | `reference_corpus/` | 15 published papers + MANIFEST; the yardstick itself |
 
 Section classification: a section is "main" (strict limits) if its filename
@@ -95,19 +103,36 @@ matches `--main-regex` (default `^(0[1-8]|abstract)`); everything else is
 appendix-like (relaxed limits). Change per project, keep the two-tier idea:
 main text must read cleanly; appendices are allowed to be dense.
 
+## Where the thresholds come from (and how to re-derive them)
+
+The defaults were derived from the bundled corpus, not chosen by hand —
+`python3 scripts/derive_thresholds.py` recomputes them and reproduces the
+shipped values (28 / 45 / 15.0) exactly. Two kinds of thresholds exist and
+the script labels them honestly: **corpus-grounded** (sentence shape,
+vocab overlap — measured + documented slack) and **editorial** (number
+density 4.0 while the corpus sits at 9.6 — the method holds your text
+tighter than the average published paper, and says so). For a new field,
+build a corpus of published papers from that field and re-derive; see
+`examples/04-custom-corpus/`.
+
 ## Extending to a new project
 
 1. Point `--input` at your paper/text directory.
-2. Copy `criteria/CRITERIA.md` into the project, fill the placeholders, and
-   map each project-specific check to a script or a config entry.
-3. Replace the example concepts in `config/terminology.json` with your own
-   (the max-2-names rule needs your real terms to work).
-4. Add project metaphors to `banned_patterns.txt` (done in one edit).
+2. Copy `config/settings.yaml` into your project as the project profile and
+   copy `criteria/CRITERIA.md` alongside it; fill the placeholders, and map
+   each project-specific check to a script or a settings entry.
+3. Replace the example concepts in `terminology:` with your own (the
+   max-2-names rule needs your real terms to work).
+4. Add project metaphors to `banned_patterns:` (one edit, no code).
 5. Provide `--artifacts` (results JSONs) and run `check_claims` — every
-   number in prose must exist there. Add explicit `claim_exemptions` for
-   things like config knobs ("K=8") rather than deleting checks.
+   number in prose must exist there. Numbers stored as JSON strings count
+   too; matches accept exact, rounded (1–3 dp), or within
+   `match_tolerance_pct` (default 0.1%) values, because prose legitimately
+   rounds artifact values. Add explicit `claim_exemptions` for things like
+   config knobs ("K=8") with a stated reason rather than deleting checks.
 6. Optionally: build your own reference corpus (any published papers from
-   your field as .txt files + MANIFEST.json) and pass `--corpus`.
+   your field as .txt files + MANIFEST.json), pass `--corpus`, and re-derive
+   thresholds with `derive_thresholds.py`.
 
 ## What each script actually measures
 
@@ -123,13 +148,20 @@ checks, passive clusters, hedge ratio, number/bracket density, words-per-
 number, acronym expansion (R4), overexplained definitions (R5), repeated
 caveats (R6), bare captions (R7, .tex only).
 
-**check_claims.py**: flattens artifact JSONs into a known-number set, extracts
-every number from prose, and lists untraced ones with sentence context. This
-is the generalized core of the original `verify_numbers.py`, which also
-proved the sharper claim-level checks worth keeping as method: no
-header/table contradictions, one canonical number per claim, precision
-policy fixed per metric. Implement those per project inside `check_claims`
-or alongside it — see `criteria/CRITERIA.md`.
+**check_claims.py**: flattens artifact JSONs into a known-number set
+(including numeric strings), extracts every number from prose, and lists
+untraced ones with sentence context. Matches accept exact, rounded (1–3 dp),
+or within `match_tolerance_pct` (default 0.1%). This is the generalized core
+of the original `verify_numbers.py`, which also proved the sharper
+claim-level checks worth keeping as method: no header/table contradictions,
+one canonical number per claim, precision policy fixed per metric. Implement
+those per project inside `check_claims` or alongside it — see
+`criteria/CRITERIA.md`.
+
+**derive_thresholds.py**: recomputes corpus-grounded thresholds from any
+`--corpus` (and honestly labels editorial ones); on the shipped corpus it
+reproduces the defaults exactly — the proof that defaults are derived, not
+vibes.
 
 ## Origin
 

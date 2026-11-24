@@ -17,7 +17,7 @@ How it works:
      section indices, years, and n-sizes may be exempted via config).
   4. Report untraced numbers with full sentence context, exit 1.
 
-Config (config/prose_quality.json) supports:
+Config (settings.yaml `prose_quality:` section) supports:
   "claim_exemptions": [ {"value": "8", "reason": "K=8 config knob"} ... ]
   "precision_policy": {"latency": 1, "f1": 3}   (informational)
 
@@ -40,7 +40,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (  # noqa: E402
     DEFAULT_CONFIG, err, load_prose_quality, load_sections,
-    number_set_from_json, split_sentences, strip_latex,
+    load_thresholds, number_set_from_json, split_sentences, strip_latex,
 )
 
 # Numbers that are almost never claims about measured results.
@@ -85,8 +85,15 @@ def collect_artifact_numbers(artifacts) -> set:
     return known_floats
 
 
-def check_claims(sections: dict, known: set, exemptions: set) -> list:
-    """Returns list of dicts for every untraced number."""
+def check_claims(sections: dict, known: set, exemptions: set,
+                 tolerance_pct: float = 0.1) -> list:
+    """Returns list of dicts for every untraced number.
+
+    A prose number is accepted if it matches a known artifact number exactly,
+    after rounding to 1–3 decimals, or within ``tolerance_pct`` percent
+    (relative). Rounding/tolerance acceptance is deliberate: prose rounds
+    artifact values.
+    """
     untraced = []
     for name, text in sorted(sections.items()):
         plain = strip_latex(text) if "\\begin" in text or text.count("$") else text
@@ -102,8 +109,8 @@ def check_claims(sections: dict, known: set, exemptions: set) -> list:
                 if any(c in known for c in
                        (val, round(val, 1), round(val, 2), round(val, 3), round(val))):
                     continue
-                # tolerance: accept if any known number is within 0.1%
-                tol = abs(val) * 0.001
+                # tolerance: accept if any known number is within tolerance_pct
+                tol = abs(val) * tolerance_pct / 100
                 if any(abs(k - val) <= tol for k in known):
                     continue
                 untraced.append({
@@ -120,17 +127,24 @@ def main():
     ap.add_argument("--artifacts", required=True, help="Results JSON file or directory")
     ap.add_argument("--config", default=str(DEFAULT_CONFIG))
     ap.add_argument("--main-regex", default=r"^(0[1-8]|abstract)")
+    ap.add_argument("--tolerance-pct", type=float, default=None,
+                    help="Relative match tolerance in percent "
+                         "(default: settings.yaml match_tolerance_pct)")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
 
     pq = load_prose_quality(args.config)
+    th = load_thresholds(args.config)
+    tolerance_pct = args.tolerance_pct
+    if tolerance_pct is None:
+        tolerance_pct = th.get("match_tolerance_pct", 0.1)
     exemptions = {str(e["value"]) for e in pq.get("claim_exemptions", [])
                   if isinstance(e, dict) and "value" in e}
 
     sections, _raw, _is_main = load_sections(args.input, args.main_regex)
     known = collect_artifact_numbers(args.artifacts)
 
-    untraced = check_claims(sections, known, exemptions)
+    untraced = check_claims(sections, known, exemptions, tolerance_pct)
 
     if args.json:
         print(json.dumps({

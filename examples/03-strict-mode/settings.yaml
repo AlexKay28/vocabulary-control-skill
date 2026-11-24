@@ -1,0 +1,27 @@
+# settings.yaml — Example 03: STRICT mode
+#
+# Same machinery, tighter limits. The text in input/ passes the default
+# profile (config/settings.yaml) but fails this one. Use strict mode on
+# final drafts, or on venues/venues-adjacent text where reviewers are
+# hostile to any LLM fingerprint.
+thresholds:
+  sentence_median_max: 22        # default is 28
+  sentence_median_min: 10
+  sentence_p90_max: 35           # default is 45
+  sentences_gt40_max: 0          # no long sentences at all
+  metaphor_max_per_section: 0    # default is 1
+  number_density_max: 3.0        # default is 4.0
+  passive_pct_max: 15.0          # default is 25.0
+  hedge_per_sentence_max: 0.2    # default is 0.5
+  vocab_overlap_min: 0.0         # keep the corpus comparison off for the demo
+
+banned_patterns:
+  - '\bmetered\b'
+  - '\bknob\b'
+  - '\btaxi\b'
+  - '\bdelve(s|d|ing)?\b'
+
+prose_quality:
+  acronyms: []
+  overexplanation_patterns: []
+  caveat_patterns: []

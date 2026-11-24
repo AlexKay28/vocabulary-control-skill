@@ -1,0 +1,183 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# vocabulary-control-skill — default settings
+#
+# Single source of truth for the harness scripts (--config points at this
+# directory). All thresholds below were DERIVED FROM THE REFERENCE CORPUS
+# (15 published ML papers, ~141k words), not chosen by hand: regenerate them
+# for your own corpus with scripts/derive_thresholds.py.
+# ─────────────────────────────────────────────────────────────────────────────
+
+thresholds:
+  # ── sentence shape (main text) ──
+  sentence_median_max: 28        # corpus median ≈ 21; ±slack
+  sentence_median_min: 10        # below this the text reads choppy
+  sentence_p90_max: 45           # corpus p90 ≈ 45 — the hard ceiling
+  sentence_gt40_pct_max: 15.0    # corpus: 13.0% of sentences exceed 40 words
+  sentences_gt40_max: 2          # per section, readability profile
+  sentences_gt60_max: 0          # no 60+ word sentences, ever
+
+  # ── banned patterns (metaphors / neuroslop) ──
+  metaphor_max_per_section: 1    # one good metaphor is fine; compounding is slop
+
+  # ── terminology consistency ──
+  terminology_names_max: 2       # one concept, at most two distinct names
+
+  # ── references & density ──
+  forward_ref_per_1k_max: 8.0    # forward references per 1000 words (main text)
+  number_density_max: 4.0        # numbers per 100 words (main text)
+  number_density_main_max: 4.0   # alias used by eval_readability (main text)
+  number_density_abs_max: 5.0    # absolute cap, any single section
+  bracket_density_main_max: 1.5  # parentheticals per 100 words (main text)
+  words_per_number_min: 25       # at least 25 prose words between numbers
+  abstract_numbers_max: 3        # inline numbers allowed in the abstract
+
+  # ── readability bands ──
+  flesch_main_min: 18            # below 18: unreadable; above 55: dumbed down
+  flesch_main_max: 55
+  flesch_appendix_min: 20        # appendices may be denser
+  median_sentence_min: 10        # aliases used by eval_readability
+  median_sentence_max: 28
+  passive_pct_max: 25.0          # % of sentences in passive voice
+  passive_cluster_max: 3         # consecutive passive sentences
+  hedge_per_sentence_max: 0.5    # hedging ratio (may be / could be / ...)
+
+  # ── fluency / similarity ──
+  comma_splice_pct_max: 10.0     # % sentences with 3+ comma-separated clauses
+  vocab_overlap_min: 0.65        # fraction of your words found in the corpus
+  vocab_overlap_appendix_min: 0.55   # appendices use more technical vocabulary
+  jsd_threshold: 0.35            # informational only (see style_harness docs)
+
+  # ── claim provenance (check_claims) ──
+  match_tolerance_pct: 0.1       # prose numbers match artifacts within 0.1%
+                                 # (prose legitimately rounds artifact values)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Banned patterns: colloquialisms, metaphors, and AI-slop phrasing.
+# One regex per list item, matched case-insensitively. Every hit sentence is
+# quoted in the report; at most thresholds.metaphor_max_per_section unique
+# sentences may hit. Add your project's picturesque language here — no code.
+#
+# Two kinds: (1) topic metaphors that betray LLM assist; (2) generic
+# neuroslop fingerprints that no published paper contains.
+# ─────────────────────────────────────────────────────────────────────────────
+
+banned_patterns:
+  # ── topic metaphors (from the original DLLM harness) ──
+  - '\btaxi\b'
+  - '\bsubway\b'
+  - '\bfare\b'
+  - '\bstation\b(?!s)'
+  - '\bblink\b'
+  - '\btrail gone cold\b'
+  - '\bemergency brake\b'
+  - 'before you (can )?finish'
+  - 'before you can blink'
+  - '\bcatching\b'
+  - '\bmetered\b'
+  - '\bflat fare\b'
+  - '\bper station\b'
+  - 'no matter how many'
+  - '\bboard\b(?![a-z])'
+  - '\bthe gap (is |was )?(the )?difference\b'
+  - '\bknob\b'
+  - '\bbrake\b'
+
+  # ── generic neuroslop / AI-isms ──
+  - '\bdelve(s|d|ing)?\b'
+  - '\btapestry\b'
+  - '\btestament to\b'
+  - '\bpaves the way\b'
+  - '\bunlock(s|ed|ing)? the\b'
+  - '\btreasure trove\b'
+  - '\bsymphony\b'
+  - '\bdance of\b'
+  - '\bnavigat(e|es|ing) the (complex|intricate|landscape)\b'
+  - '\bin the ever-evolving\b'
+  - '\bit(''s| is) important to note that\b'
+  - '\bit(''s| is) worth noting that\b'
+  - '\bserves as a\b'
+  - '\bstands as a\b'
+  - '\ba (rich|vibrant) (ecosystem|landscape)\b'
+  - '\bdazzling\b'
+  - '\bmyriad of\b'
+  - '\bkaleidoscope\b'
+  - '\bpicture this\b'
+  - '\bimagine a world\b'
+  - '\bfast-paced\b'
+  - '\brobust and scalable\b'
+  - '\bseamless(ly)?\b'
+  - '\bcutting-edge\b'
+  - '\bgame-changer\b'
+  - '\brevolutioniz\b'
+  - '\bredefin(e|es|ing) the\b'
+  - '\bparadigm shift\b'
+  - '\btip of the iceberg\b'
+  - '\bshed(s|ding)? light on\b'
+  - '\blight bulb\b'
+  - '\beureka\b'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Terminology consistency: each concept may carry at most
+# thresholds.terminology_names_max distinct names across the whole text.
+# Replace the examples with your project's real concepts.
+# ─────────────────────────────────────────────────────────────────────────────
+
+terminology:
+  concepts:
+    example_block_diffusion:
+      canonical: block-diffusion
+      note: Example from the DLLM paper — replace with your own concept.
+      patterns:
+        - '\bblock-diffusion\b'
+        - '\bblock diffusion\b(?!-)'
+        - '\bDG\b(?![a-z])'
+        - '(?<!block-)\bdiffusion model\b'
+      groups:
+        dg: block-diffusion
+        block-diffusion: block-diffusion
+        block diffusion: block-diffusion
+        diffusion model: diffusion model
+    example_autoregressive:
+      canonical: AR/autoregressive
+      note: AR, autoregressive, and auto-regressive collapse to one name.
+      patterns:
+        - '\bautoregressive\b'
+        - '\bauto-regressive\b'
+        - '\bAR\b(?![a-z])'
+      groups:
+        ar: AR/autoregressive
+        autoregressive: AR/autoregressive
+        auto-regressive: AR/autoregressive
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Prose-quality patterns (criteria R4/R5/R6 from the method) and claim
+# provenance settings. Replace patterns with your project's own; empty lists
+# disable the corresponding check.
+# ─────────────────────────────────────────────────────────────────────────────
+
+prose_quality:
+  # R4: every acronym must be expanded at first use, e.g. "service-level
+  # agreement (SLA)". Acronyms that never appear are fine.
+  acronyms: [SLA, SOC, EOS, KV, MoE]
+
+  # R5: flag definitions that restate what the formula already says.
+  overexplanation_patterns:
+    - a ratio above 1 means
+    - a value above 1 means
+    - in other words, a larger
+
+  # R6: the same caveat may appear inline at most caveat_max_per_section
+  # times per section, except in sections exempted by caveat_exempt_regex
+  # (threats/limitations sections repeat caveats legitimately).
+  caveat_patterns:
+    - engine-bounded
+    - not the baseline
+  caveat_max_per_section: 4
+  caveat_exempt_regex: '^(0[7-8]|threat|conclusion)'
+
+  # check_claims: prose numbers that are legitimately untraced (config
+  # knobs, protocol constants). Always give the reason — an exemption
+  # without a reason is a smell.
+  claim_exemptions:
+    - value: '8'
+      reason: K=8 denoising-steps config knob, not a measured result

@@ -1,0 +1,13 @@
+# Paper B: adapters for frozen language models (synthetic mini-corpus doc)
+Adapters update a small fraction of parameters while the base model stays
+frozen, which makes them attractive for deployments that host many tasks on
+one checkpoint. We insert low-rank matrices into the attention projections
+and show that the rank controls a trade-off between downstream accuracy and
+adapter latency. Across a battery of classification and generation tasks,
+ranks between eight and sixty-four recover most of the fine-tuning gap,
+while ranks above that plateau in accuracy and cost more latency than the
+gap justifies. We analyze the optimization geometry of the adapter layer
+and show that the frozen backbone keeps the effective rank of the gradient
+low, which explains why small ranks suffice. The recipe transfers across
+model families with no retuning beyond the rank sweep itself, and the
+inference overhead is a single extra matrix product per adapted projection.

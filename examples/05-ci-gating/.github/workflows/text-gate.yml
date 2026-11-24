@@ -1,0 +1,40 @@
+name: text-gate
+
+# Gate paper text on every push: no neuroslop, provenance on every number.
+# Copy into your repo as .github/workflows/text-gate.yml and fix the paths.
+
+on:
+  push:
+    paths: ["paper/**", "results/**", "config/settings.yaml"]
+  pull_request:
+
+jobs:
+  vocabulary-control:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Style harness (stylometrics, metaphors, terminology)
+        run: |
+          python3 scripts/style_harness.py \
+            --input paper --config config --quiet --out reports
+
+      - name: Readability + density
+        run: |
+          python3 scripts/eval_readability.py \
+            --input paper --config config
+
+      - name: Number provenance (every number traces to an artifact)
+        run: |
+          python3 scripts/check_claims.py \
+            --input paper --config config --artifacts results
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: style-report
+          path: reports/

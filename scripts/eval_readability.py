@@ -5,7 +5,7 @@ Generalized extraction of the DLLM-as-Service readability harness.
 
   - readability: Flesch Reading Ease, sentence length, passive clusters, hedging
   - density:     number density, bracket density, words-per-number
-  - prose quality (project patterns from config/prose_quality.json):
+  - prose quality (project patterns from settings.yaml `prose_quality:`):
       R4 acronyms expanded on first use
       R5 over-explained definitions
       R6 repeated caveats
@@ -228,8 +228,8 @@ def print_table(results: list, title: str) -> int:
         if status == "FAIL":
             fails += 1
     print(f"  {'-' * 75}")
-    print(f"  {'PASS' if fails == 0 else f'{fails} FAIL'}: "
-          f"{len(results) - fails}/{len(results)} checks")
+    n_checks = len(results)
+    print(f"  [{title}] {n_checks - fails}/{n_checks} checks pass")
     return fails
 
 
@@ -299,6 +299,13 @@ def main():
         for title, rows in groups:
             if rows:
                 total_fails += print_table(rows, title)
+
+        print(f"\n{'=' * 80}")
+        if total_fails == 0:
+            print("  ALL CHECKS PASS")
+        else:
+            print(f"  {total_fails} CHECK(S) FAILED")
+        print(f"{'=' * 80}")
 
     sys.exit(1 if any(r[3] == "FAIL" for r in all_results) else 0)
 

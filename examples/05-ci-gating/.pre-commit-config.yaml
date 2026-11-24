@@ -1,0 +1,26 @@
+# .pre-commit-config.yaml — gate every commit on text quality.
+# Copy to your repo root, then: pip install pre-commit && pre-commit install
+
+repos:
+  - repo: local
+    hooks:
+      - id: style-harness
+        name: style harness (stylometrics, metaphors, terminology)
+        entry: python3 scripts/style_harness.py --input paper --config config --quiet
+        language: system
+        pass_filenames: false
+        files: ^(paper|config)/
+
+      - id: readability
+        name: readability + density
+        entry: python3 scripts/eval_readability.py --input paper --config config
+        language: system
+        pass_filenames: false
+        files: ^paper/
+
+      - id: number-provenance
+        name: every prose number traces to an artifact
+        entry: python3 scripts/check_claims.py --input paper --config config --artifacts results
+        language: system
+        pass_filenames: false
+        files: ^(paper|results)/

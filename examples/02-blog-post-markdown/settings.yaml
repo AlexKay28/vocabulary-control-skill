@@ -1,0 +1,31 @@
+# settings.yaml — Example 02: Markdown blog post profile
+#
+# No LaTeX, no artifacts: claims check is skipped, vocabulary control is the
+# point. Relaxed readability band for a public audience (Flesch up to 70),
+# zero tolerance for AI-slop patterns.
+thresholds:
+  sentence_median_max: 26
+  sentence_median_min: 8
+  sentence_p90_max: 40
+  metaphor_max_per_section: 0
+  number_density_max: 3.0
+  passive_pct_max: 20.0
+  flesch_main_min: 25
+  flesch_main_max: 70
+  vocab_overlap_min: 0.0    # prose comparison off: a blog is not an ML paper
+
+banned_patterns:
+  - '\bdelve(s|d|ing)?\b'
+  - '\btapestry\b'
+  - '\btestament to\b'
+  - '\bunlock(s|ed|ing)? the\b'
+  - '\bseamless(ly)?\b'
+  - '\bgame-changer\b'
+  - '\bin today''s (fast-paced|digital) (world|age)\b'
+  - '\blet''s dive\b'
+  - '\bwhether you''re a (beginner|seasoned)\b'
+
+prose_quality:
+  acronyms: []
+  overexplanation_patterns: []
+  caveat_patterns: []

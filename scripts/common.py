@@ -52,49 +52,236 @@ def err(msg: str, code: int = 2):
     sys.exit(code)
 
 
-def load_thresholds(config_dir: Path) -> dict:
-    """Load thresholds.json merged over defaults."""
+# ─── settings (YAML) ─────────────────────────────────────────────────────────
+#
+# The single source of truth for skill behavior is config/settings.yaml.
+# Pure stdlib: a small YAML-subset parser below handles the file; PyYAML is
+# used automatically if available. Supported subset:
+#   comments (#), blank lines, `key: scalar`, nested maps (2-space indent),
+#   block lists ("- item"), inline lists ([a, b]), quoted strings,
+#   integers/floats, true/false/null. Multi-line strings are NOT supported.
+
+
+def _yaml_scalar(tok: str):
+    tok = tok.strip()
+    if tok == "" or tok == "~" or tok.lower() == "null":
+        return None
+    if tok.lower() in ("true", "yes"):
+        return True
+    if tok.lower() in ("false", "no"):
+        return False
+    if tok.startswith('"') and tok.endswith('"'):
+        return tok[1:-1]
+    if tok.startswith("'") and tok.endswith("'"):
+        return tok[1:-1].replace("''", "'")
+    if tok.startswith("[") and tok.endswith("]"):
+        inner = tok[1:-1].strip()
+        if not inner:
+            return []
+        return [_yaml_scalar(p) for p in _yaml_split_inline(inner)]
+    if re.fullmatch(r"-?\d+", tok):
+        return int(tok)
+    if re.fullmatch(r"-?\d*\.\d+([eE][-+]?\d+)?", tok) or re.fullmatch(r"-?\d+[eE][-+]?\d+", tok):
+        return float(tok)
+    return tok
+
+
+def _yaml_split_inline(inner: str):
+    """Split 'a, [b, c], "d, e"' on top-level commas."""
+    parts, depth, cur, quote = [], 0, [], None
+    for ch in inner:
+        if quote:
+            cur.append(ch)
+            if ch == quote:
+                quote = None
+        elif ch in "\"'":
+            quote = ch
+            cur.append(ch)
+        elif ch == "[":
+            depth += 1
+            cur.append(ch)
+        elif ch == "]":
+            depth -= 1
+            cur.append(ch)
+        elif ch == "," and depth == 0:
+            parts.append("".join(cur).strip())
+            cur = []
+        else:
+            cur.append(ch)
+    if cur:
+        parts.append("".join(cur).strip())
+    return parts
+
+
+def parse_yaml(text: str) -> dict:
+    """Parse the YAML subset described above into nested dicts/lists."""
+    # Strip comments and blank lines, keep (indent, content)
+    lines = []
+    for raw in text.splitlines():
+        # remove comments outside quotes
+        out, quote = [], None
+        for ch in raw:
+            if quote:
+                out.append(ch)
+                if ch == quote:
+                    quote = None
+            elif ch in "\"'":
+                quote = ch
+                out.append(ch)
+            elif ch == "#":
+                break
+            else:
+                out.append(ch)
+        line = "".join(out).rstrip()
+        if not line.strip():
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        if "\t" in line[:indent]:
+            raise ValueError("YAML: tabs in indentation are not supported")
+        lines.append((indent, line.strip()))
+
+    def parse_block(i: int, indent: int):
+        """Parse lines at >= indent starting at i. Returns (value, next_i)."""
+        # decide list vs map by first line
+        if i >= len(lines) or lines[i][0] < indent:
+            return {}, i
+        if lines[i][1].startswith("- ") or lines[i][1] == "-":
+            items = []
+            while i < len(lines) and lines[i][0] == indent and \
+                    (lines[i][1].startswith("- ") or lines[i][1] == "-"):
+                content = lines[i][1][1:].strip()
+                if content == "":
+                    val, i = parse_block(i + 1, indent + 2)
+                    items.append(val)
+                elif ":" in content and not content.startswith(('"', "'")):
+                    # inline map start: "- key: value"
+                    submap, i = _parse_map_item(i, indent, content)
+                    items.append(submap)
+                else:
+                    items.append(_yaml_scalar(content))
+                    i += 1
+            return items, i
+        # map
+        result = {}
+        while i < len(lines) and lines[i][0] == indent and not lines[i][1].startswith("-"):
+            content = lines[i][1]
+            if ":" not in content:
+                raise ValueError(f"YAML: expected 'key: value', got: {content!r}")
+            key, _, rest = content.partition(":")
+            key = key.strip().strip("\"'")
+            rest = rest.strip()
+            if rest:
+                result[key] = _yaml_scalar(rest)
+                i += 1
+            else:
+                val, i = parse_block(i + 1, indent + 2)
+                result[key] = val
+        return result, i
+
+    def _parse_map_item(i: int, indent: int, first: str):
+        """Handle '- key: value' plus following deeper-indented keys."""
+        key, _, rest = first.partition(":")
+        submap = {key.strip().strip("\"'"): _yaml_scalar(rest.strip()) if rest.strip() else {}}
+        i += 1
+        while i < len(lines) and lines[i][0] > indent:
+            content = lines[i][1]
+            if ":" not in content:
+                raise ValueError(f"YAML: expected 'key: value', got: {content!r}")
+            k2, _, rest2 = content.partition(":")
+            k2 = k2.strip().strip("\"'")
+            rest2 = rest2.strip()
+            if rest2:
+                submap[k2] = _yaml_scalar(rest2)
+                i += 1
+            else:
+                val, i = parse_block(i + 1, lines[i][0] + 2)
+                submap[k2] = val
+        return submap, i
+
+    if not lines:
+        return {}
+    value, _i = parse_block(0, lines[0][0])
+    if not isinstance(value, dict):
+        raise ValueError("YAML: top level must be a map")
+    return value
+
+
+def load_settings(config_dir) -> dict:
+    """Load config/settings.yaml (single source of truth).
+
+    Uses PyYAML if installed, else the built-in subset parser. Legacy split
+    JSON configs (thresholds.json etc.) are still read when settings.yaml is
+    absent, for backward compatibility.
+    """
+    config_dir = Path(config_dir)
+    for name in ("settings.yaml", "settings.yml"):
+        path = config_dir / name
+        if path.exists():
+            text = path.read_text()
+            try:
+                if __import__("os").environ.get("VCS_NO_PYYAML"):
+                    raise ImportError
+                import yaml  # type: ignore
+                return yaml.safe_load(text) or {}
+            except ImportError:
+                return parse_yaml(text)
+    # legacy fallback
+    legacy = {}
+    for key, fname in (("thresholds", "thresholds.json"),
+                       ("terminology", "terminology.json"),
+                       ("prose_quality", "prose_quality.json")):
+        p = config_dir / fname
+        if p.exists():
+            legacy[key] = json.loads(p.read_text())
+    if legacy:
+        if (config_dir / "banned_patterns.txt").exists():
+            patterns = [l.strip() for l in (config_dir / "banned_patterns.txt")
+                        .read_text().splitlines()
+                        if l.strip() and not l.strip().startswith("#")]
+            legacy["banned_patterns"] = patterns
+    return legacy
+
+
+def _settings(config_dir) -> dict:
+    return load_settings(config_dir)
+
+
+def load_thresholds(config_dir) -> dict:
+    """Thresholds from settings.yaml merged over corpus-derived defaults."""
     th = dict(THRESHOLD_DEFAULTS)
-    path = Path(config_dir) / "thresholds.json"
-    if path.exists():
-        th.update(json.loads(path.read_text()))
+    s = _settings(config_dir)
+    if isinstance(s.get("thresholds"), dict):
+        th.update(s["thresholds"])
     return th
 
 
-def load_banned_patterns(config_dir: Path):
-    """Load banned_patterns.txt -> compiled case-insensitive regex.
+def load_banned_patterns(config_dir):
+    """Compile banned patterns (metaphors / neuroslop) from settings.yaml.
 
-    One pattern per line; blank lines and #-comments ignored.
+    Returns a case-insensitive regex; never matches when no patterns set.
     """
-    patterns = []
-    path = Path(config_dir) / "banned_patterns.txt"
-    if not path.exists():
-        return re.compile(r"(?!x)x")  # never matches
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        patterns.append(line)
+    s = _settings(config_dir)
+    patterns = s.get("banned_patterns") or []
+    patterns = [p for p in patterns if isinstance(p, str) and p.strip()]
     if not patterns:
         return re.compile(r"(?!x)x")
     return re.compile("|".join(f"(?:{p})" for p in patterns), re.IGNORECASE)
 
 
-def load_terminology(config_dir: Path) -> dict:
-    """Load terminology.json -> {concept: {canonical, patterns[], groups{}}}."""
-    path = Path(config_dir) / "terminology.json"
-    if not path.exists():
-        return {}
-    data = json.loads(path.read_text())
-    return data.get("concepts", {})
+def load_terminology(config_dir) -> dict:
+    """Terminology consistency map from settings.yaml."""
+    s = _settings(config_dir)
+    term = s.get("terminology")
+    if isinstance(term, dict):
+        return term.get("concepts", {}) or {}
+    return {}
 
 
-def load_prose_quality(config_dir: Path) -> dict:
-    """Load prose_quality.json (project-specific R5/R6/R7-style patterns)."""
-    path = Path(config_dir) / "prose_quality.json"
-    if not path.exists():
-        return {}
-    return json.loads(path.read_text())
+def load_prose_quality(config_dir) -> dict:
+    """Prose-quality settings (acronyms, caveats, exemptions) from settings.yaml."""
+    s = _settings(config_dir)
+    pq = s.get("prose_quality")
+    return pq if isinstance(pq, dict) else {}
 
 
 # ─── text cleaning ─────────────────────────────────────────────────────────
@@ -265,7 +452,11 @@ def count_numbers(text: str) -> int:
 
 
 def number_set_from_json(obj, prefix: str = "") -> set:
-    """Flatten a JSON object into a set of normalized numeric strings."""
+    """Flatten a JSON object into a set of normalized numeric strings.
+
+    Numeric string values (e.g. "23" or "0.812") are flattened too — a number
+    stored as a string in an artifact is still a known number.
+    """
     out = set()
     if isinstance(obj, dict):
         for k, v in obj.items():
@@ -273,9 +464,14 @@ def number_set_from_json(obj, prefix: str = "") -> set:
     elif isinstance(obj, list):
         for v in obj:
             out |= number_set_from_json(v, prefix)
-    elif isinstance(obj, (int, float)) and not isinstance(obj, bool):
+    elif isinstance(obj, bool):
+        pass
+    elif isinstance(obj, (int, float)):
         # normalize: 2.5 and 2.50 and 2.5x should compare equal
         out.add(f"{float(obj):.6g}")
         if isinstance(obj, int):
             out.add(f"{obj}")
+    elif isinstance(obj, str):
+        if re.fullmatch(r"-?\d+\.?\d*", obj.strip()):
+            out.add(f"{float(obj):.6g}")
     return out

@@ -66,14 +66,14 @@ re-reading sentences or hunting for definitions.
 | R1 | Flesch Reading Ease in [18, 55] for main text, [20, 80] for appendices. | `eval_readability.py`. |
 | R2 | Median sentence length in [10, 28] words. | `eval_readability.py`, `style_harness.py`. |
 | R3 | ≤ 2 sentences > 40 words per section; 0 sentences > 60 words. | `eval_readability.py`. |
-| R4 | Acronyms expanded on first use (`[SLA, SOC, EOS, KV, MoE]`). | `eval_readability.py` + `config/prose_quality.json`. |
-| R5 | No over-explained definitions (glossing what the formula already states). | `eval_readability.py` + `config/prose_quality.json`. |
-| R6 | Repeated caveats consolidated — appear inline at most `[4]` times outside the threats section. | `eval_readability.py` + `config/prose_quality.json`. |
+| R4 | Acronyms expanded on first use (`[SLA, SOC, EOS, KV, MoE]`). | `eval_readability.py` + `settings.yaml` (`prose_quality:` section). |
+| R5 | No over-explained definitions (glossing what the formula already states). | `eval_readability.py` + `settings.yaml` (`prose_quality:` section). |
+| R6 | Repeated caveats consolidated — appear inline at most `[4]` times outside the threats section. | `eval_readability.py` + `settings.yaml` (`prose_quality:` section). |
 | R7 | Figure captions are self-contained: each states what is shown and the finding. | `eval_readability.py` (bare-caption proxy) + manual. |
 | R8 | Number density ≤ 4.0 / 100 words in main text; bracket density ≤ 1.5 / 100 words; ≥ 25 words between numbers. | `eval_readability.py`, `style_harness.py`. |
-| R9 | No editorializing ("plot twist", "the arm we were not rooting for") — neutral prose only. | `banned_patterns.txt` + manual. |
-| R10 | Metaphors/colloquialisms ≤ 1 per section; zero generic neuroslop. | `style_harness.py` + `config/banned_patterns.txt`. |
-| R11 | One concept carries at most 2 distinct names across the text. | `style_harness.py` + `config/terminology.json`. |
+| R9 | No editorializing ("plot twist", "the arm we were not rooting for") — neutral prose only. | `settings.yaml` (`banned_patterns:` section) + manual. |
+| R10 | Metaphors/colloquialisms ≤ 1 per section; zero generic neuroslop. | `style_harness.py` + `config/settings.yaml` (`banned_patterns:` section). |
+| R11 | One concept carries at most 2 distinct names across the text. | `style_harness.py` + `settings.yaml` (`terminology:` section). |
 | R12 | Passive voice ≤ 25% of sentences, no cluster > 3; hedging < 50% of sentences. | `eval_readability.py`, `style_harness.py`. |
 
 ---

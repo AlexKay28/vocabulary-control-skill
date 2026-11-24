@@ -8,7 +8,7 @@ is defined by evidence, not vibes.
 
 Metrics (all compared section-by-section against the corpus):
   1.  Sentence length (median, p90, % > 40 words)
-  2.  Metaphor/colloquialism/neuroslop density (banned_patterns.txt, max per section)
+  2.  Metaphor/colloquialism/neuroslop density (settings.yaml banned_patterns, max per section)
   3.  Terminology consistency (distinct names for the same concept)
   4.  Forward-reference density (per 1000 words)
   5.  Number density (numbers per 100 words)
@@ -489,19 +489,19 @@ def generate_report(results: list, baseline: dict, input_name: str) -> tuple:
     md = f"# Style Report — {input_name}\n\nGenerated: {ts}\n\n"
     md += "## Reference Corpus Baseline\n\n"
     md += "| Metric | Reference Corpus |\n|---|---|\n"
-    for label, key in (
-        ("Words", "n_words"), ("Sentences", "n_sentences"),
-        ("Sentence median (words)", "sentence_median"),
-        ("Sentence p90 (words)", "sentence_p90"),
-        ("Sentences >40 words (%)", "sentence_gt40_pct"),
-        ("Number density (per 100 words)", "number_density"),
+    for label, key, unit in (
+        ("Words", "n_words", ""), ("Sentences", "n_sentences", ""),
+        ("Sentence median (words)", "sentence_median", ""),
+        ("Sentence p90 (words)", "sentence_p90", ""),
+        ("Sentences >40 words", "sentence_gt40_pct", "%"),
+        ("Number density (per 100 words)", "number_density", ""),
     ):
-        md += f"| {label} | {baseline[key]:,} |\n".replace(".0,", ",")
+        md += f"| {label} | {baseline[key]:,}{unit} |\n"
 
     md += "\n## Section Results\n\n"
     md += ("| Section | Words | Sent | Med | p90 | >40% | Banned | Vocab | Delta | TF-IDF | "
            "FuncWord | SentLen | Status |\n")
-    md += "|---|" * 13 + "---|\n"
+    md += "|" + "---|" * 13 + "\n"
     for r in results:
         m = r["metrics"]
         status = "PASS" if r["pass"] else "FAIL"

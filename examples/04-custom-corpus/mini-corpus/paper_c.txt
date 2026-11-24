@@ -1,0 +1,13 @@
+# Paper C: speculative decoding with a draft model (synthetic mini-corpus doc)
+Speculative decoding accelerates autoregressive inference by verifying
+several drafted tokens in one forward pass of the target model. The speedup
+depends on the acceptance rate of the draft, which in turn depends on how
+closely the draft distribution tracks the target distribution. We derive
+the expected speedup as a function of the acceptance rate and the relative
+cost of the draft model, and we show that the optimal draft length is short
+even when the acceptance rate is high, because each rejected token wastes a
+full target-model evaluation. Experiments on summarization and translation
+benchmarks confirm the predicted optimum within measurement noise, and a
+distilled draft model raises the acceptance rate enough to shift the
+optimum by one token. The analysis explains reported speedups across the
+literature and predicts when speculative decoding does not pay.

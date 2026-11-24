@@ -1,0 +1,7 @@
+{
+  "diffusion_p50_ms": 23,
+  "baseline_p50_ms": 47,
+  "quality_f1": 0.812,
+  "n_seeds": 3,
+  "input_lengths": [512, 1024]
+}

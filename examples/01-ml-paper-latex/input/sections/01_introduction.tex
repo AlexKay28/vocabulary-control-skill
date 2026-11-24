@@ -1,0 +1,15 @@
+% Clean section: should PASS the harness.
+\section{Introduction}
+
+Log parsing pipelines turn raw cluster logs into structured records, and the
+parse must stay fast enough to keep up with ingestion. We study a diffusion
+model against an autoregressive baseline on this task, holding model size,
+data, and evaluation fixed so the comparison isolates the decoding scheme.
+The diffusion model reaches a median latency of 23 ms per event, while the
+baseline takes 47 ms under the same budget, and both fill every required
+field on the same held-out split.
+
+The claim is narrow. Under matched quality, parallel field filling removes
+the sequential-token latency of the baseline, and the measured gap holds
+across three seeds and two input lengths. Section 2 states the cost model,
+and Section 3 reports the measured deployment behavior.

@@ -1,0 +1,49 @@
+# settings.yaml — Example 01: ML paper profile (LaTeX)
+#
+# The full pipeline: stylometrics + readability + terminology + provenance.
+# Point at it with: --config examples/01-ml-paper-latex
+thresholds:
+  sentence_median_max: 28
+  sentence_median_min: 10
+  sentence_p90_max: 45
+  metaphor_max_per_section: 1
+  terminology_names_max: 2
+  number_density_max: 4.0
+  abstract_numbers_max: 3
+  passive_pct_max: 25.0
+  vocab_overlap_min: 0.60
+  match_tolerance_pct: 0.1
+
+banned_patterns:
+  - '\btaxi\b'
+  - '\bmetered\b'
+  - '\bknob\b'
+  - '\bdelve(s|d|ing)?\b'
+  - '\btapestry\b'
+  - '\bunlock(s|ed|ing)? the\b'
+
+terminology:
+  concepts:
+    diffusion_model:
+      canonical: block-diffusion
+      note: Pick one name for the model family; at most two may survive.
+      patterns:
+        - '\bblock-diffusion\b'
+        - '(?<!block-)\bdiffusion model\b'
+        - '\bdiffusion arm\b'
+        - '\bDG\b(?![a-z])'
+      groups:
+        dg: block-diffusion
+        block-diffusion: block-diffusion
+        diffusion model: diffusion model
+        diffusion arm: diffusion arm
+
+prose_quality:
+  acronyms: [SLA, KV]
+  overexplanation_patterns:
+    - a ratio above 1 means
+  caveat_patterns:
+    - engine-bounded
+  caveat_max_per_section: 2
+  caveat_exempt_regex: '^(0[7-8]|threat)'
+  claim_exemptions: []

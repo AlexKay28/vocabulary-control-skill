@@ -1,0 +1,14 @@
+# Paper A: attention kernels for long sequences (synthetic mini-corpus doc)
+Attention dominates the cost of long-sequence inference, and the kernel
+schedule determines whether the hardware pipeline stays full. We tile the
+attention computation so that each block reuses the key and value tiles
+resident in shared memory, and we reorder the softmax accumulation to keep
+the reduction numerically stable. The result is a kernel that sustains
+near-peak throughput on sequences that previously forced the implementation
+into a memory-bound regime, with the gains concentrated in the middle
+lengths where earlier kernels overlapped tiling boundaries. We evaluate the
+schedule on three hardware generations and report throughput, occupancy,
+and the length at which the memory-bound regime begins. The method extends
+to grouped-query attention by sharing tiles across query heads, and the
+same scheduling principle applies to the backward pass with an additional
+accumulation buffer.
