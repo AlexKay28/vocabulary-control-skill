@@ -22,6 +22,8 @@ Pure Python stdlib; no build, no dependencies.
 - A threshold you cannot trace to a measurement is a vibe (CONTRIBUTING.md).
 - Harness scripts must keep the exit-code contract: 0 = pass, 1 = checks
   failed, 2 = input/config error. Automation depends on it.
-- Every example in `examples/` must run end-to-end and its README must state
-  expected exit codes; changes to behavior need matching test updates in
-  `tests/test_suite.py`.
+- Every example in `examples/` and every recipe in `recipes/` must run
+  end-to-end and its README must state expected exit codes; changes to
+  behavior need matching test updates in `tests/test_suite.py`. Recipes are
+  the paper's real editorial checks as YAML — keep the failing fixture
+  failing and the fixed fixture passing.

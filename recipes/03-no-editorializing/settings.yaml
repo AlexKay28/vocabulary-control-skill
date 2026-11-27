@@ -1,0 +1,18 @@
+# Recipe 03 — no editorializing (criterion R9)
+#
+# Story: DLLM §1 contained "the arm we were not rooting for inherited every
+# default" — advocacy, not measurement. Reviewers read editorializing as a
+# tell that the numbers are being sold rather than reported. The paper was
+# rewritten to neutral prose; this rule keeps it that way.
+rules:
+  - id: R9-no-editorializing
+    type: forbidden
+    pattern: 'the arm we were not rooting for|plot twist|shockingly|astonishingly|disappointingly|unfortunately for|happily,'
+    sections: '^01_'
+    message: '§1 must be neutral prose: no editorializing, no rooting for an arm, no plot twists.'
+
+  - id: R9-no-surprise-hedges
+    type: forbidden
+    pattern: '\b(surprisingly|interestingly|remarkably|curiously)\b'
+    sections: '^(0[1-8]|abstract)'
+    message: 'Surprise adverbs editorialize the result; state the number and let it be surprising on its own.'

@@ -1,0 +1,25 @@
+# Recipe 06 — abstract structure (criterion S1)
+#
+# Story: the DLLM abstract had to state, in ~150 words: the claim, the
+# comparison (what the arms were matched on), the headline number, and the
+# regime (five deployment conditions). A reviewer should reconstruct the
+# paper from the abstract alone. `required` rules on the abstract section
+# make that contract executable.
+rules:
+  - id: S1-headline-number
+    type: required
+    pattern: '\d'
+    sections: '^abstract$'
+    message: 'Abstract must carry the headline number (and at most thresholds.abstract_numbers_max of them).'
+
+  - id: S1-comparison-stated
+    type: required
+    any_of: ['vs', 'compared', 'baseline', 'matched']
+    sections: '^abstract$'
+    message: 'Abstract must state the comparison and what the arms were matched on.'
+
+  - id: S1-regime-stated
+    type: required
+    any_of: ['under', 'across', 'conditions', 'regime']
+    sections: '^abstract$'
+    message: 'Abstract must state the regime (the conditions under which the claim holds).'

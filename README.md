@@ -38,6 +38,7 @@ Fix the quoted sentences, rerun, exit 0. That loop is the whole workflow.
 | `style_harness.py` | Sentence shape (median/p90/>40%), metaphor & neuroslop counter, terminology consistency (max 2 names per concept), forward refs, number density, comma splices, passive %, vocabulary overlap, Burrows' Cosine Delta, TF-IDF similarity, function-word & sentence-length distribution similarity — all vs the reference corpus |
 | `eval_readability.py` | Flesch band (18–55 main text; *too readable is also a failure*), long-sentence caps, passive clusters, hedging, bracket density, words-between-numbers, acronyms expanded, over-explained definitions, repeated caveats, bare captions |
 | `check_claims.py` | **Number provenance**: every number cited in prose must trace to a committed artifact JSON (exact, rounded, or within tolerance); untraced numbers are reported with their full sentence |
+| `check_rules.py` | **Declarative rules engine** — project criteria as YAML: `forbidden` (retracted numbers must not resurface), `required` (punchlines must not be buried), `proximity` (every ratio names its arm), `first_use` (asymmetry disclosed inline), `precision` (fixed decimals per metric), `max_count` (caveat budgets) |
 | `run_all.py` | Single gate: exit 0 = publishable |
 
 ## Why "corpus-grounded"
@@ -81,6 +82,21 @@ if installed; a built-in subset parser covers everything else.
 | `04-custom-corpus` | Build your own corpus, derive thresholds from it |
 | `05-ci-gating` | pytest wrapper, pre-commit hook, GitHub Action |
 
+## Recipes (agent-friendly, from the arXiv paper)
+
+`recipes/` encodes the checks **actually applied in the DLLM-as-Service
+paper** — originally bespoke Python, now declarative YAML. Each recipe ships
+a failing fixture, a fixed fixture, and the story:
+
+| # | Recipe | Paper criterion |
+|---|---|---|
+| 01 | No backwards claims (15.6× defective harness → corrected 2.5×) | A1, A2 |
+| 02 | Punchlines not buried ("3.21× breaks a batch-1 SLA" belongs in Results) | I3, I5 |
+| 03 | No editorializing ("the arm we were not rooting for") | R9 |
+| 04 | Every ratio names its arm (quality arm ≠ latency arm, disclosed at first use) | A3, A6 |
+| 05 | Precision policy (latency 1 dp, F1 3 dp, ratios 1 dp) | A7 |
+| 06 | Abstract structure (claim + comparison + headline number + regime) | S1 |
+
 Reports of a real 20/20 pass (`examples/style_report_v7.md`) and a real
 failing later version (`examples/style_report_v9_FAILING.md`) are included —
 the tool catches its own source project's drift.
@@ -95,7 +111,7 @@ template (Successful / Accurate / Interesting / Readable).
 ## Tests & development
 
 ```bash
-make test            # 12 tests, stdlib unittest, no dependencies
+make test            # 14 tests, stdlib unittest, no dependencies
 make test-no-pyyaml  # same, forcing the built-in YAML parser
 ```
 

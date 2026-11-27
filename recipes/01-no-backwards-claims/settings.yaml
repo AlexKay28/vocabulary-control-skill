@@ -1,0 +1,19 @@
+# Recipe 01 — no backwards claims (criteria A1 + A2 from the DLLM paper)
+#
+# Story: the DLLM paper's introduction claimed a 15.6× advantage that came
+# from a DEFECTIVE harness; corrections brought it to 2.5×. The paper was
+# rewritten so §1 never re-asserts the defective number, and a §3 header
+# never overclaims "wins at every length" over a table with a 0.7× row.
+# These were bespoke Python checks; here they are declarative rules.
+rules:
+  - id: A1-no-fifteenfold
+    type: forbidden
+    pattern: 'fifteenfold|15\.6'
+    sections: '^01_'
+    message: '§1 must not resurrect the pre-correction 15.6× — the defective-harness number. State the corrected figure.'
+
+  - id: A2-no-wins-at-every
+    type: forbidden
+    pattern: 'wins at every'
+    sections: '^03_'
+    message: 'Header overclaims "every" output length but the table has a sub-1.0× row. Soften to "above L*".'

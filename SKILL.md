@@ -158,6 +158,17 @@ one canonical number per claim, precision policy fixed per metric. Implement
 those per project inside `check_claims` or alongside it — see
 `criteria/CRITERIA.md`.
 
+**check_rules.py**: declarative rule engine for project-specific criteria —
+the checks that were bespoke Python in the original `verify_numbers.py`,
+now YAML. Six rule types: `forbidden` (retracted numbers/phrases must not
+resurface), `required` (punchlines, caveats, headline numbers must not be
+buried by refactors), `max_count` (caveat budgets), `proximity` (every ratio
+names its arm within N words), `first_use` (asymmetries disclosed inline at
+first use), `precision` (fixed decimals per metric). `recipes/` contains six
+agent-ready recipes taken directly from the arXiv paper (A1/A2, I3/I5, R9,
+A3/A6, A7, S1), each with a failing fixture, a fixed fixture, and the story.
+Runs automatically inside `run_all.py` when `rules:` is non-empty.
+
 **derive_thresholds.py**: recomputes corpus-grounded thresholds from any
 `--corpus` (and honestly labels editorial ones); on the shipped corpus it
 reproduces the defaults exactly — the proof that defaults are derived, not

@@ -110,6 +110,45 @@ class TestExample04DeriveThresholds(unittest.TestCase):
         self.assertIn("sentence_gt40_pct_max: 15.0", r.stdout)
 
 
+class TestRecipes(unittest.TestCase):
+    """Every recipe: failing fixture exits 1 with its rule ids quoted,
+    fixed fixture exits 0. This is the agent-facing contract."""
+
+    RECIPES = [
+        ("01-no-backwards-claims", ["A1-no-fifteenfold", "A2-no-wins-at-every"]),
+        ("02-punchline-not-buried", ["I3-tail-punchline-in-results",
+                                     "I5-prefill-caveat-present"]),
+        ("03-no-editorializing", ["R9-no-editorializing", "R9-no-surprise-hedges"]),
+        ("04-arm-attribution", ["A3-ratio-names-arm",
+                                "A6-asymmetry-disclosed-first-use"]),
+        ("05-precision-policy", ["A7-f1-three-dp", "A7-latency-one-dp",
+                                 "A7-ratio-one-dp"]),
+        ("06-abstract-structure", ["S1-headline-number", "S1-comparison-stated",
+                                   "S1-regime-stated"]),
+    ]
+
+    def test_recipes_fail_and_fix(self):
+        for recipe, rule_ids in self.RECIPES:
+            base = REPO / "recipes" / recipe
+            with self.subTest(recipe=recipe, fixture="input"):
+                r = run("check_rules.py", "--input", str(base / "input"),
+                        "--config", str(base))
+                self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+                for rid in rule_ids:
+                    self.assertIn(rid, r.stdout)
+            with self.subTest(recipe=recipe, fixture="input_fixed"):
+                r = run("check_rules.py", "--input", str(base / "input_fixed"),
+                        "--config", str(base))
+                self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_run_all_skips_rules_when_unconfigured(self):
+        r = run("run_all.py",
+                "--input", str(EXAMPLES / "02-blog-post-markdown/input"),
+                "--config", str(EXAMPLES / "02-blog-post-markdown"))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("[skip] no `rules:` configured", r.stdout)
+
+
 class TestJsonOutput(unittest.TestCase):
     def test_style_json_is_valid(self):
         import json

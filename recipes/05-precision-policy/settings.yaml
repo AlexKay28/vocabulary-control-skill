@@ -1,0 +1,24 @@
+# Recipe 05 — numeric precision policy (criterion A7)
+#
+# Story: the DLLM paper fixed a precision policy per metric (latency 1 dp,
+# F1 3 dp, ratios 1 dp, rates 3 dp) and `check_precision_policy` enforced it
+# so re-measurements could not silently change precision between sections.
+# Inconsistent decimals read as inconsistent experiments.
+rules:
+  - id: A7-f1-three-dp
+    type: precision
+    metric: 'F1'
+    decimals: 3
+    message: 'F1 values must be reported to 3 decimal places.'
+
+  - id: A7-latency-one-dp
+    type: precision
+    metric: 'latency'
+    decimals: 1
+    message: 'Latency values must be reported to 1 decimal place.'
+
+  - id: A7-ratio-one-dp
+    type: precision
+    metric: 'ratio'
+    decimals: 1
+    message: 'Ratios must be reported to 1 decimal place.'

@@ -19,7 +19,8 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SCRIPTS = ["style_harness.py", "eval_readability.py", "check_claims.py"]
+SCRIPTS = ["style_harness.py", "eval_readability.py", "check_claims.py",
+           "check_rules.py"]
 
 
 def main():

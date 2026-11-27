@@ -1,0 +1,24 @@
+# Recipe 04 — every ratio names its arm (criteria A3 + A6)
+#
+# Story: the DLLM paper compared a quality arm (dense AR-3B) and a latency
+# arm (AR-30B MoE) that were NOT the same model. Every latency/quality ratio
+# in prose had to name its arm or cite a table/figure that does, and the
+# asymmetry had to be disclosed at first use, not only in §7 Threats.
+# `check_arm_attribution_inline` enforced it; these are the declarative
+# equivalents (proximity + first_use rule types).
+rules:
+  - id: A3-ratio-names-arm
+    type: proximity
+    pattern: '\d+(?:\.\d+)?\s*(?:×|\\times)(?=\s|$|[.,;])'
+    near: 'AR|DG|LLaDA|Table|Figure|\\ref'
+    window_words: 30
+    sections: '^(0[1-8]|abstract)'
+    message: 'Every × ratio must name its arm (AR/DG/LLaDA) or cite a table/figure within 30 words.'
+
+  - id: A6-asymmetry-disclosed-first-use
+    type: first_use
+    pattern: 'AR-30B'
+    near: 'MoE|dense AR-3B|quality arm'
+    window_words: 40
+    sections: '^01_'
+    message: 'First use of AR-30B must disclose the quality/latency arm asymmetry inline, not defer it to §7.'

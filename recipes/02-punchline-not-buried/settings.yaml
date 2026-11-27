@@ -1,0 +1,25 @@
+# Recipe 02 — punchlines must not be buried (criteria I3 + I5)
+#
+# Story: the DLLM paper's tail-latency punchline ("3.21× breaks a batch-1
+# SLA") appeared only in §4 Limits, and the input-length caveat (DG prefill
+# steeper, moves L*) was buried in §4.4 while §2 presented L* as fixed.
+# Interesting papers put the punchline in Results and the caveat next to the
+# claim it qualifies. `required` rules make "not buried" machine-checkable.
+rules:
+  - id: I3-tail-punchline-in-results
+    type: required
+    any_of: ['batch-1 SLA', 'breaks a batch-1']
+    sections: '^03_'
+    message: '§3 Results must carry the tail-latency/batch-1-SLA punchline, not only §4 Limits.'
+
+  - id: I5-prefill-caveat-present
+    type: required
+    pattern: 'steeper'
+    sections: '^02_'
+    message: '§2 must state the prefill-slope caveat where L* is introduced, not bury it in §4.'
+
+  - id: I5-caveat-names-input
+    type: required
+    pattern: 'input'
+    sections: '^02_'
+    message: 'The caveat must name the input-length dependence explicitly.'
